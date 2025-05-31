@@ -2,28 +2,31 @@
 
 :: PROJECT DEFINES
 set test_path=..\test\
+set gtest_path=..\third_party\googletest\googletest
+set src_path=..\code\
+set build_path=..\build\
+set test_exe=run_tests.exe
+
+:: SET Include Paths
+set gtest_include_paths=/I"%gtest_path%" /I"%gtest_path%\include"
 
 :: GENERAL COMPILER FLAGS
-set compiler=               -nologo &:: Suppress Startup Banner
-set compiler=%compiler%     -Oi     &:: Use assembly intrinsics where possible
-set compiler=%compiler%     -MTd    &:: Include CRT library in the executable (static link)
-set compiler=%compiler%     -Gm-    &:: Disable minimal rebuild
-set compiler=%compiler%     -GR-    &:: Disable runtime type info (C++)
-set compiler=%compiler%     -EHa-   &:: Disable exception handling (C++)
-set compiler=%compiler%     -W4     &:: Display warnings up to level 4
-set compiler=%compiler%     -WX     &:: Treat all warnings as errors
-:: IGNORE WARNINGS
-set compiler=%compiler%     -wd4201
-set compiler=%compiler%     -wd4100
-set compiler=%compiler%     -wd4189
-set compiler=%compiler%     -wd4505
-set compiler=%compiler%	 -wd4456 &:: Re-declaration of variables inside scope
+set compiler=/EHsc /MT /O2
 
 if not exist .\build mkdir .\build
 pushd .\build
 
-:: No optimizations (slow): -Od; all optimizations (fast): -O2
+del /f /q *.obj
 
-cl -O2 %compiler% %test_path%main.cpp
+:: Compiling Google test main
+cl /nologo /std:c++17 %compiler% %gtest_include_paths% -c %gtest_path%\src\gtest-all.cc -Fogtest-all.obj
+
+cl /nologo /std:c++17 %compiler% %gtest_include_paths% -c %gtest_path%\src\gtest_main.cc -Fogtest_main.obj
+
+:: Compiling the emulator
+cl /nologo %compiler% /I%src_path% -c %src_path%/cpu.cpp -Focpu.obj
+
+:: Compiling test main
+cl /nologo /std:c++17 %compiler% /I%src_path% %gtest_include_paths% %test_path%main_test.cpp *.obj -Fe%test_exe% -link -incremental:no
 
 popd

@@ -5,20 +5,24 @@ project_name = "CPU 6502 Emulator";
 patterns = {
 	"*.cpp",
 	"*.c",
+	"*.cc"
 	"*.h",
 	"*.bat",
 	"*.sh",
 	"*.4coder",
 	"Makefile",
 	".txt",
-};
-
-blacklist_patterns = {
 	".*",
 };
 
 load_paths = {
-	{ { {".", .relative = true, .recursive = true, } }, .os = "win" },
-	{ { {".", .relative = true, .recursive = true, } }, .os = "linux" },
-	{ { {".", .relative = true, .recursive = true, } }, .os = "mac" },
+	{
+		{
+			{ ".", .relative = true, .recursive = false },
+			{ "code/", .relative = true, .recursive = true },
+			{ "test/", .relative = true, .recursive = true },
+			{ "misc/", .relative = true, .recursive = true }
+		}, 
+		.os="win"
+	},
 };
