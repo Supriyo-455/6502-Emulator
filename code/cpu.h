@@ -9,6 +9,9 @@
 #define INS_LDA_IM                            0xA9
 #define INS_LDA_ZP                            0xA5
 #define INS_LDA_ZPX                           0xB5
+#define INS_LDA_ABS                           0xAD
+#define INS_LDA_ABS_X                         0xBD
+#define INS_LDA_ABS_Y                         0xB9
 
 #define INS_JSR_ABS                           0x20
 
@@ -41,15 +44,15 @@ void initialize_memory(MEM* memory);
 
 void reset_cpu(CPU* cpu, MEM* mem);
 
-Byte fetch_byte(CPU* cpu, MEM* mem, u32* cycles);
+Byte fetch_byte(CPU* cpu, MEM* mem, i32* cycles);
 
-Word fetch_word(CPU* cpu, MEM* mem, u32* cycles);
+Word fetch_word(CPU* cpu, MEM* mem, i32* cycles);
 
-Byte read_byte(MEM* mem, u32 address, u32* cycles);
+Byte read_byte(MEM* mem, i32 address, i32* cycles);
 
-void write_word(MEM* mem, Word value, u32 address, u32* cycles);
+void write_word(MEM* mem, Word value, i32 address, i32* cycles);
 
-void execute_instruction(CPU* cpu, MEM* mem, u32 cycles);
+i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles);
 
 
 #endif //CPU_H

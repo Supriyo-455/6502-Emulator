@@ -47,14 +47,14 @@ void reset_cpu(CPU* cpu, MEM* mem)
     initialize_memory(mem);
 }
 
-Byte fetch_byte(CPU* cpu, MEM* mem, u32* cycles)
+Byte fetch_byte(CPU* cpu, MEM* mem, i32* cycles)
 {
     Byte data = mem->Data[cpu->PC++];
     *cycles -= 1;
     return data;
 }
 
-Word fetch_word(CPU* cpu, MEM* mem, u32* cycles)
+Word fetch_word(CPU* cpu, MEM* mem, i32* cycles)
 {
     // NOTE: 6502 is little endian
     Word Data = mem->Data[cpu->PC++];
@@ -65,21 +65,21 @@ Word fetch_word(CPU* cpu, MEM* mem, u32* cycles)
     return Data;
 }
 
-Byte read_byte(MEM* mem, u32 address, u32* cycles)
+Byte read_byte(MEM* mem, i32 address, i32* cycles)
 {
     Byte data = mem->Data[address];
     *cycles -= 1;
     return data;
 }
 
-void write_word(MEM* mem, Word value, u32 address, u32* cycles)
+void write_word(MEM* mem, Word value, i32 address, i32* cycles)
 {
     mem->Data[address] = value & 0xFF;
     mem->Data[address + 1] = (value >> 8);
     *cycles -= 2;
 }
 
-void execute_instruction(CPU* cpu, MEM* mem, u32 cycles)
+i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
 {
     while(cycles > 0)
     {
@@ -98,7 +98,6 @@ void execute_instruction(CPU* cpu, MEM* mem, u32 cycles)
             
             case INS_LDA_ZP:
             {
-                u32 index = cpu->PC;
                 Byte ZeroPageAddress = fetch_byte(cpu, mem, &cycles);
                 cpu->A = read_byte(mem, ZeroPageAddress, &cycles);
                 
@@ -108,14 +107,21 @@ void execute_instruction(CPU* cpu, MEM* mem, u32 cycles)
             
             case INS_LDA_ZPX:
             {
-                u32 index = cpu->PC;
                 Byte ZeroPageAddress = fetch_byte(cpu, mem, &cycles);
-                // TODO: Overflow address check
+                
                 ZeroPageAddress += cpu->X;
-                cpu->A = read_byte(mem, ZeroPageAddress, &cycles);
                 cycles--;
+                
+                cpu->A = read_byte(mem, ZeroPageAddress, &cycles);
+                
+                cpu_lda_set_status(cpu);
             }
             break;
+            
+            case INS_LDA_ABS:
+            {
+                
+            }
             
             case INS_JSR_ABS:
             {
@@ -134,4 +140,5 @@ void execute_instruction(CPU* cpu, MEM* mem, u32 cycles)
             break;
         }
     }
+    return cycles;
 }

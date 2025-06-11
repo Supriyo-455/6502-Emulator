@@ -5,14 +5,13 @@ project_name = "CPU 6502 Emulator";
 patterns = {
 	"*.cpp",
 	"*.c",
-	"*.cc"
+	"*.cc",
 	"*.h",
 	"*.bat",
 	"*.sh",
 	"*.4coder",
 	"Makefile",
-	".txt",
-	".*",
+	".txt"
 };
 
 load_paths = {
