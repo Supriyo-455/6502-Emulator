@@ -65,7 +65,7 @@ Word fetch_word(CPU* cpu, MEM* mem, i32* cycles)
     return Data;
 }
 
-Byte read_byte(MEM* mem, i32 address, i32* cycles)
+Byte read_byte(MEM* mem, Word address, i32* cycles)
 {
     Byte data = mem->Data[address];
     *cycles -= 1;
@@ -86,10 +86,11 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
         Byte ins = fetch_byte(cpu, mem, &cycles);
         switch(ins)
         {
-            // NOTE: LDA addressing modes
+            // NOTE: LDA Addressing modes
             case INS_LDA_IM:
             {
                 Byte value = fetch_byte(cpu, mem, &cycles);
+                
                 cpu->A = value;
                 
                 cpu_lda_set_status(cpu);
@@ -99,6 +100,7 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
             case INS_LDA_ZP:
             {
                 Byte ZeroPageAddress = fetch_byte(cpu, mem, &cycles);
+                
                 cpu->A = read_byte(mem, ZeroPageAddress, &cycles);
                 
                 cpu_lda_set_status(cpu);
@@ -120,15 +122,37 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
             
             case INS_LDA_ABS:
             {
+                Word AbsoluteAddress = fetch_word(cpu, mem, &cycles);
+                
+                cpu->A = read_byte(mem, AbsoluteAddress, &cycles);
+                
+                cpu_lda_set_status(cpu);
+            }
+            break;
+            
+            case INS_LDA_ABS_X:
+            {
+                Word AbsoluteAddress = fetch_word(cpu, mem, &cycles);
+                
+                AbsoluteAddress += cpu->X;
+                
+                cpu->A = read_byte(mem, AbsoluteAddress, &cycles);
+                
+                cpu_lda_set_status(cpu);
                 
             }
+            break;
             
+            // JSR Addressing modes
             case INS_JSR_ABS:
             {
                 Word jmpAddress = fetch_word(cpu, mem, &cycles);
+                
                 write_word(mem, cpu->PC - 1, cpu->SP, &cycles);
+                
                 cpu->SP++;
                 cpu->PC = jmpAddress;
+                
                 cycles--;
             }
             break;

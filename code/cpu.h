@@ -12,6 +12,8 @@
 #define INS_LDA_ABS                           0xAD
 #define INS_LDA_ABS_X                         0xBD
 #define INS_LDA_ABS_Y                         0xB9
+#define INS_LDA_IND_X                         0xA1
+#define INS_LDA_IND_Y                         0xB1
 
 #define INS_JSR_ABS                           0x20
 
@@ -48,7 +50,7 @@ Byte fetch_byte(CPU* cpu, MEM* mem, i32* cycles);
 
 Word fetch_word(CPU* cpu, MEM* mem, i32* cycles);
 
-Byte read_byte(MEM* mem, i32 address, i32* cycles);
+Byte read_byte(MEM* mem, Word address, i32* cycles);
 
 void write_word(MEM* mem, Word value, i32 address, i32* cycles);
 

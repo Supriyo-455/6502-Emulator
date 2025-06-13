@@ -16,9 +16,9 @@ set compiler=/EHsc /MT /O2
 if not exist %build_path% mkdir %build_path%
 pushd %build_path%
 
+:: Compiling Google test source files
 if not exist gtest-all.obj (
 
-:: Compiling Google test main
 cl /nologo /std:c++17 %compiler% %gtest_include_paths% -c %gtest_path%\src\gtest-all.cc -Fogtest-all.obj
 
 )
