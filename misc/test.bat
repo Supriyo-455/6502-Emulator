@@ -11,7 +11,7 @@ set test_exe=run_tests.exe
 set gtest_include_paths=/I"%gtest_path%" /I"%gtest_path%\include"
 
 :: GENERAL COMPILER FLAGS
-set compiler=/EHsc /MT /O2
+set compiler=/EHsc /MT /Od
 
 if not exist %build_path% mkdir %build_path%
 pushd %build_path%

@@ -52,7 +52,9 @@ Word fetch_word(CPU* cpu, MEM* mem, i32* cycles);
 
 Byte read_byte(MEM* mem, Word address, i32* cycles);
 
-void write_word(MEM* mem, Word value, i32 address, i32* cycles);
+Word read_word(MEM* mem, Word address, i32* cycles);
+
+void write_word(MEM* mem, Word value, Word address, i32* cycles);
 
 i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles);
 

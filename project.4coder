@@ -38,9 +38,16 @@ commands = {
 		.save_dirty_files = true,
 		.cursor_at_end = true,
 	},
+	.debug = {
+		.win = "misc\debug.bat",
+		.footer_panel = false,
+		.save_dirty_files = true,
+		.cursor_at_end = false,
+	},
 };
 
 fkey_command = {
 	.F1 = "build",
 	.F2 = "run_tests",
+	.F3 = "debug",
 };

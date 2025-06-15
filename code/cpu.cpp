@@ -72,7 +72,16 @@ Byte read_byte(MEM* mem, Word address, i32* cycles)
     return data;
 }
 
-void write_word(MEM* mem, Word value, i32 address, i32* cycles)
+Word read_word(MEM* mem, Word address, i32* cycles)
+{
+    // NOTE: 6502 is little endian
+    Byte LowByte = read_byte(mem, address, cycles);
+    Byte HighByte = read_byte(mem, address + 1, cycles);
+    
+    return (HighByte << 8) | LowByte;
+}
+
+void write_word(MEM* mem, Word value, Word address, i32* cycles)
 {
     mem->Data[address] = value & 0xFF;
     mem->Data[address + 1] = (value >> 8);
@@ -111,6 +120,7 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
             {
                 Byte ZeroPageAddress = fetch_byte(cpu, mem, &cycles);
                 
+                // TODO: Overflow assertions
                 ZeroPageAddress += cpu->X;
                 cycles--;
                 
@@ -134,7 +144,15 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
             {
                 Word AbsoluteAddress = fetch_word(cpu, mem, &cycles);
                 
+                Byte AbsoluteAddressHighBitsPreviously = (AbsoluteAddress >> 8);
+                
+                // TODO: Overflow assertions
                 AbsoluteAddress += cpu->X;
+                
+                Byte AbsoluteAddressHighBitsNow = (AbsoluteAddress >> 8);
+                
+                if(AbsoluteAddressHighBitsNow - AbsoluteAddressHighBitsPreviously != 0)
+                    cycles--;
                 
                 cpu->A = read_byte(mem, AbsoluteAddress, &cycles);
                 
@@ -143,7 +161,62 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
             }
             break;
             
-            // JSR Addressing modes
+            case INS_LDA_ABS_Y:
+            {
+                Word AbsoluteAddress = fetch_word(cpu, mem, &cycles);
+                
+                Byte AbsoluteAddressHighBitsPreviously = (AbsoluteAddress >> 8);
+                
+                // TODO: Overflow assertions
+                AbsoluteAddress += cpu->Y;
+                
+                Byte AbsoluteAddressHighBitsNow = (AbsoluteAddress >> 8);
+                
+                if(AbsoluteAddressHighBitsNow - AbsoluteAddressHighBitsPreviously != 0)
+                    cycles--;
+                
+                cpu->A = read_byte(mem, AbsoluteAddress, &cycles);
+                
+                cpu_lda_set_status(cpu);
+                
+            }
+            break;
+            
+            case INS_LDA_IND_X:
+            {
+                Byte ZeroPageAddress = fetch_byte(cpu, mem, &cycles);
+                
+                // TODO: Overflow assertions
+                ZeroPageAddress += cpu->X;
+                cycles--;
+                
+                Word EffectiveAddress = read_word(mem, ZeroPageAddress, &cycles);
+                
+                cpu->A = read_byte(mem, EffectiveAddress, &cycles);
+            }
+            break;
+            
+            case INS_LDA_IND_Y:
+            {
+                Byte ZeroPageAddress = fetch_byte(cpu, mem, &cycles);
+                
+                Word EffectiveAddress  = read_word(mem, ZeroPageAddress, &cycles);
+                
+                Byte EffectiveAddressHighPreviously = (EffectiveAddress >> 8);
+                
+                // TODO: Overflow assertions
+                EffectiveAddress += cpu->Y;
+                
+                Byte EffectiveAddressHighNow = (EffectiveAddress >> 8);
+                
+                if(EffectiveAddressHighNow - EffectiveAddressHighPreviously != 0)
+                    cycles--;
+                
+                cpu->A = read_byte(mem, EffectiveAddress, &cycles);
+            }
+            break;
+            
+            // NOTE: JSR Addressing modes
             case INS_JSR_ABS:
             {
                 Word jmpAddress = fetch_word(cpu, mem, &cycles);

@@ -1,2 +1,3 @@
 @echo off
-devenv .\build\main.exe
+
+devenv ./build/main.exe
