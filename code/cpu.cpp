@@ -4,24 +4,25 @@
 #include "defines.h"
 #include "cpu.h"
 
-void cpu_lda_set_status(CPU* cpu)
+void cpu_load_set_status(CPU* cpu, Byte Register)
 {
-    if(cpu->A == 0)
+    if(Register == 0)
     {
-        SET_BIT(cpu->PS, 1);
+        cpu->PS.ZeroFlag = true;
     }
     else
     {
-        UNSET_BIT(cpu->PS, 0);
+        cpu->PS.ZeroFlag = false;
     }
     
-    if((cpu->A & 0b10000000) > 0)
+    // TODO:How to detect negative numbers??
+    if(Register < 0)
     {
-        SET_BIT(cpu->PS, 6);
+        cpu->PS.OverflowFlag = true;
     }
     else
     {
-        UNSET_BIT(cpu->PS, 6);
+        cpu->PS.OverflowFlag = false;
     }
 }
 
@@ -42,7 +43,7 @@ void reset_cpu(CPU* cpu, MEM* mem)
     cpu->X = 0;
     cpu->Y = 0;
     
-    cpu->PS = 0b00000000;
+    cpu->PS = {};
     
     initialize_memory(mem);
 }
@@ -88,6 +89,7 @@ void write_word(MEM* mem, Word value, Word address, i32* cycles)
     *cycles -= 2;
 }
 
+// TODO: Compress execute function
 i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
 {
     while(cycles > 0)
@@ -102,7 +104,7 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
                 
                 cpu->A = value;
                 
-                cpu_lda_set_status(cpu);
+                cpu_load_set_status(cpu, cpu->A);
             }
             break;
             
@@ -112,11 +114,11 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
                 
                 cpu->A = read_byte(mem, ZeroPageAddress, &cycles);
                 
-                cpu_lda_set_status(cpu);
+                cpu_load_set_status(cpu, cpu->A);
             }
             break;
             
-            case INS_LDA_ZPX:
+            case INS_LDA_ZP_X:
             {
                 Byte ZeroPageAddress = fetch_byte(cpu, mem, &cycles);
                 
@@ -126,7 +128,7 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
                 
                 cpu->A = read_byte(mem, ZeroPageAddress, &cycles);
                 
-                cpu_lda_set_status(cpu);
+                cpu_load_set_status(cpu, cpu->A);
             }
             break;
             
@@ -136,7 +138,7 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
                 
                 cpu->A = read_byte(mem, AbsoluteAddress, &cycles);
                 
-                cpu_lda_set_status(cpu);
+                cpu_load_set_status(cpu, cpu->A);
             }
             break;
             
@@ -156,8 +158,7 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
                 
                 cpu->A = read_byte(mem, AbsoluteAddress, &cycles);
                 
-                cpu_lda_set_status(cpu);
-                
+                cpu_load_set_status(cpu, cpu->A);
             }
             break;
             
@@ -177,7 +178,7 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
                 
                 cpu->A = read_byte(mem, AbsoluteAddress, &cycles);
                 
-                cpu_lda_set_status(cpu);
+                cpu_load_set_status(cpu, cpu->A);
                 
             }
             break;
@@ -193,6 +194,8 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
                 Word EffectiveAddress = read_word(mem, ZeroPageAddress, &cycles);
                 
                 cpu->A = read_byte(mem, EffectiveAddress, &cycles);
+                
+                cpu_load_set_status(cpu, cpu->A);
             }
             break;
             
@@ -213,6 +216,74 @@ i32 execute_instruction(CPU* cpu, MEM* mem, i32 cycles)
                     cycles--;
                 
                 cpu->A = read_byte(mem, EffectiveAddress, &cycles);
+                
+                cpu_load_set_status(cpu, cpu->A);
+            }
+            break;
+            
+            //NOTE: LDX Addressing modes
+            case INS_LDX_IM:
+            {
+                Byte value = fetch_byte(cpu, mem, &cycles);
+                
+                cpu->X = value;
+                
+                cpu_load_set_status(cpu, cpu->X);
+            }
+            break;
+            
+            case INS_LDX_ZP:
+            {
+                Byte ZeroPageAddress = fetch_byte(cpu, mem, &cycles);
+                
+                cpu->X = read_byte(mem, ZeroPageAddress, &cycles);
+                
+                cpu_load_set_status(cpu, cpu->X);
+            }
+            break;
+            
+            case INS_LDX_ZP_Y:
+            {
+                Byte ZeroPageAddress = fetch_byte(cpu, mem, &cycles);
+                
+                // TODO: Overflow assertions
+                ZeroPageAddress += cpu->X;
+                cycles--;
+                
+                cpu->X = read_byte(mem, ZeroPageAddress, &cycles);
+                
+                cpu_load_set_status(cpu, cpu->X);
+            }
+            break;
+            
+            case INS_LDX_ABS:
+            {
+                Word AbsoluteAddress = fetch_word(cpu, mem, &cycles);
+                
+                cpu->X = read_byte(mem, AbsoluteAddress, &cycles);
+                
+                cpu_load_set_status(cpu, cpu->A);
+            }
+            break;
+            
+            case INS_LDX_ABS_Y:
+            {
+                Word AbsoluteAddress = fetch_word(cpu, mem, &cycles);
+                
+                Byte AbsoluteAddressHighBitsPreviously = (AbsoluteAddress >> 8);
+                
+                // TODO: Overflow assertions
+                AbsoluteAddress += cpu->Y;
+                
+                Byte AbsoluteAddressHighBitsNow = (AbsoluteAddress >> 8);
+                
+                if(AbsoluteAddressHighBitsNow - AbsoluteAddressHighBitsPreviously != 0)
+                    cycles--;
+                
+                cpu->X = read_byte(mem, AbsoluteAddress, &cycles);
+                
+                cpu_load_set_status(cpu, cpu->X);
+                
             }
             break;
             

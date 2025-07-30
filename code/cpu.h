@@ -8,18 +8,35 @@
 // NOTE: Opcodes definition
 #define INS_LDA_IM                            0xA9
 #define INS_LDA_ZP                            0xA5
-#define INS_LDA_ZPX                           0xB5
+#define INS_LDA_ZP_X                          0xB5
 #define INS_LDA_ABS                           0xAD
 #define INS_LDA_ABS_X                         0xBD
 #define INS_LDA_ABS_Y                         0xB9
 #define INS_LDA_IND_X                         0xA1
 #define INS_LDA_IND_Y                         0xB1
 
+#define INS_LDX_IM                            0xA2
+#define INS_LDX_ZP                            0xA6
+#define INS_LDX_ZP_Y                          0xB6
+#define INS_LDX_ABS                           0xAE
+#define INS_LDX_ABS_Y                         0xBE
+
 #define INS_JSR_ABS                           0x20
 
 struct MEM
 {
     Byte Data[MAX_MEM];
+};
+
+struct ProcessorStatus
+{
+    bool CarryFlag;
+    bool ZeroFlag;
+    bool InterruptDisableFlag;
+    bool DecimalModeFlag;
+    bool BreakCommandFlag;
+    bool OverflowFlag;
+    bool NegativeFlag;
 };
 
 struct CPU
@@ -29,15 +46,7 @@ struct CPU
     
     Byte A, X, Y; // Registers
     
-    // NOTE: Processor status, 8 bit number, each bit represents a flag
-    // Bit 0 -> Carry Flag
-    // Bit 1 -> Zero Flag
-    // Bit 2 -> Interrupt Disable Flag
-    // Bit 3 -> Decimal Mode Flag
-    // Bit 4 -> Break Command Flag
-    // Bit 5 -> Overflow Flag
-    // Bit 6 -> Negative Flag
-    Byte PS;
+    ProcessorStatus PS;
 };
 
 void cpu_lda_set_status(CPU* cpu);
